@@ -40,50 +40,50 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
       - name: Build
         run: npm run build
-  deploy-ecr:
-    needs: build-and-test
-    runs-on: ubuntu-latest
+  # deploy-ecr:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Build and push Docker image to ECR
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Build and push Docker image to ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Docker image to ECR
-        run: |
-          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{env.AWS_ECR_REPO_PATH}}
-          docker build -t ${{env.AWS_ECR_REPO_NAME}} .
-          docker tag ${{env.AWS_ECR_REPO_NAME}}:latest ${{env.AWS_ECR_REPO_LINK}}:latest
-          docker push ${{env.AWS_ECR_REPO_LINK}}:latest
+  #     - name: Build and push Docker image to ECR
+  #       run: |
+  #         aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{env.AWS_ECR_REPO_PATH}}
+  #         docker build -t ${{env.AWS_ECR_REPO_NAME}} .
+  #         docker tag ${{env.AWS_ECR_REPO_NAME}}:latest ${{env.AWS_ECR_REPO_LINK}}:latest
+  #         docker push ${{env.AWS_ECR_REPO_LINK}}:latest
   
   
-  deploy-eb:
-    needs: deploy-ecr
-    runs-on: ubuntu-latest
+  # deploy-eb:
+  #   needs: deploy-ecr
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
-      # only use for set the latest versions
-      # - name: Generate deployment package
-      #   run: zip -r deploy.zip ./Dockerrun.aws.json
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v21
-        with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: ${{ env.AWS_EB_APPLICATION }}
-          environment_name: ${{ env.AWS_EB_ENVIRONMENT }}
-          version_label: 'latest'
-          region: ${{ env.AWS_REGION }}       
-          # deployment_package: deploy.zip         # only use for set the latest versions
-          use_existing_version_if_available: true
+  #   steps:
+  #     - name: Checkout source code
+  #       uses: actions/checkout@v3
+  #     # only use for set the latest versions
+  #     # - name: Generate deployment package
+  #     #   run: zip -r deploy.zip ./Dockerrun.aws.json
+  #     - name: Deploy to EB
+  #       uses: einaregilsson/beanstalk-deploy@v21
+  #       with:
+  #         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         application_name: ${{ env.AWS_EB_APPLICATION }}
+  #         environment_name: ${{ env.AWS_EB_ENVIRONMENT }}
+  #         version_label: 'latest'
+  #         region: ${{ env.AWS_REGION }}       
+  #         # deployment_package: deploy.zip         # only use for set the latest versions
+  #         use_existing_version_if_available: true
